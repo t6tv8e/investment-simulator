@@ -35,10 +35,10 @@ function App() {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold tracking-tight">
-                    Asset Manager Simulation
+                    Investment Simulator
                   </h1>
                   <p className="text-xs text-muted-foreground">
-                    Long-term investment scenario planner
+                    Long-term investment scenario crafter
                   </p>
                 </div>
               </div>
