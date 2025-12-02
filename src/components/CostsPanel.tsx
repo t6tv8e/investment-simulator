@@ -75,3 +75,4 @@ export function CostsPanel({ costs, onCostsChange }: CostsPanelProps) {
   );
 }
 
+

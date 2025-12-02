@@ -141,3 +141,4 @@ export function GrowthChart({ projection }: GrowthChartProps) {
   );
 }
 
+

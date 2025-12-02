@@ -99,3 +99,4 @@ export function ExitCostsTable({ scenarioId, exitCosts }: ExitCostsTableProps) {
   );
 }
 
+

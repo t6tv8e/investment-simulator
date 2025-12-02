@@ -85,3 +85,4 @@ export function AllocationSummary({ scenarioId }: AllocationSummaryProps) {
     </div>
   );
 }
+
