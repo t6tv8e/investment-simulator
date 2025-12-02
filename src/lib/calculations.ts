@@ -368,15 +368,11 @@ export function calculateTaxProjection(
   let totalTaxPaid = 0;
   let totalExemptionUsed = 0;
 
-  // Track the cost basis - resets after each realization
-  let costBasis = scenarioProjection.initialInvestment;
-
   for (const yearResult of years) {
     const year = yearResult.year;
     const isRealizationYear = realizationYears.includes(year);
 
-    // Calculate this year's gain (portfolio value - cost basis at start of year)
-    const currentValue = yearResult.totalEndValueAfterCosts;
+    // Calculate this year's gain
     const yearlyGain = yearResult.totalNetReturn;
 
     // Add yearly gain to cumulative unrealized gains
@@ -408,9 +404,6 @@ export function calculateTaxProjection(
 
       // Reset carryover after using exemption
       carryoverExemption = 0;
-
-      // Update cost basis to current value (after selling and re-buying)
-      costBasis = currentValue;
     } else {
       // No realization - add to carryover (if exemption not used)
       // Only add carryover if we didn't realize this year

@@ -86,7 +86,8 @@ export function FundBreakdownChart({ projection }: FundBreakdownChartProps) {
         borderWidth: 1,
         padding: 12,
         callbacks: {
-          label: (context: { dataset: { label?: string }; parsed: { y: number } }) => {
+          label: (context: { dataset: { label?: string }; parsed: { y: number | null } }) => {
+            if (context.parsed.y === null) return "";
             return `${context.dataset.label}: ${formatCurrency(context.parsed.y)}`;
           },
         },

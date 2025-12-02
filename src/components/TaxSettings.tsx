@@ -21,7 +21,6 @@ import {
   calculateTaxProjection,
   formatCurrency,
   formatPercentage,
-  type ScenarioProjection,
 } from "@/lib/calculations";
 import type { Scenario } from "@/context/SimulationContext";
 

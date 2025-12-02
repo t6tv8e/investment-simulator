@@ -68,7 +68,8 @@ export function GrowthChart({ projection }: GrowthChartProps) {
         padding: 12,
         displayColors: false,
         callbacks: {
-          label: (context: { parsed: { y: number } }) => {
+          label: (context: { parsed: { y: number | null } }) => {
+            if (context.parsed.y === null) return "";
             return formatCurrency(context.parsed.y);
           },
         },
