@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FundCard } from "./FundCard";
 import { AllocationSummary } from "./AllocationSummary";
-import { ExitCostsTable } from "./ExitCostsTable";
 import { TaxSettings } from "./TaxSettings";
 import { GrowthChart } from "./GrowthChart";
 import { FundBreakdownChart } from "./FundBreakdownChart";
@@ -92,9 +91,6 @@ export function ScenarioPanel({ scenario }: ScenarioPanelProps) {
           </div>
         )}
       </div>
-
-      {/* Exit Costs */}
-      <ExitCostsTable scenarioId={scenario.id} exitCosts={scenario.exitCosts} />
 
       {/* Tax Settings */}
       <TaxSettings

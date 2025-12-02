@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
-import { type Fund, useSimulationDispatch } from "@/context/SimulationContext";
+import { type Fund, useSimulation, useSimulationDispatch } from "@/context/SimulationContext";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,8 @@ interface FundCardProps {
 
 export function FundCard({ fund, scenarioId }: FundCardProps) {
   const [costsOpen, setCostsOpen] = useState(false);
+  const [exitCostsOpen, setExitCostsOpen] = useState(false);
+  const { timeHorizon } = useSimulation();
   const dispatch = useSimulationDispatch();
 
   const allocation = fund.unitPrice * fund.quantity;
@@ -26,6 +28,10 @@ export function FundCard({ fund, scenarioId }: FundCardProps) {
     fund.costs.terPct +
     fund.costs.transactionCostPct +
     fund.costs.performanceFeePct;
+
+  // Sum of all exit costs configured
+  const totalExitCostPct = fund.exitCosts.reduce((sum, ec) => sum + ec.exitFeePct, 0);
+  const hasExitCosts = totalExitCostPct > 0;
 
   const updateFund = (updates: Partial<Fund>) => {
     dispatch({
@@ -38,6 +44,14 @@ export function FundCard({ fund, scenarioId }: FundCardProps) {
     dispatch({
       type: "UPDATE_FUND_COSTS",
       payload: { scenarioId, fundId: fund.id, costs },
+    });
+  };
+
+  const updateExitCost = (year: number, value: string) => {
+    const numValue = parseFloat(value) || 0;
+    dispatch({
+      type: "UPDATE_FUND_EXIT_COST",
+      payload: { scenarioId, fundId: fund.id, year, exitFeePct: Math.max(0, numValue) },
     });
   };
 
@@ -156,6 +170,60 @@ export function FundCard({ fund, scenarioId }: FundCardProps) {
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CostsPanel costs={fund.costs} onCostsChange={updateCosts} />
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Exit Costs Section */}
+        <Collapsible open={exitCostsOpen} onOpenChange={setExitCostsOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between h-9 px-2 text-sm"
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-muted-foreground">Exit Costs</span>
+                {hasExitCosts && (
+                  <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
+                    configured
+                  </Badge>
+                )}
+              </span>
+              {exitCostsOpen ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="pt-2 space-y-2">
+              <p className="text-[10px] text-muted-foreground/70">
+                Exit fee (uitstapkosten) applied when withdrawing at each year
+              </p>
+              <div className="grid grid-cols-5 gap-1">
+                {fund.exitCosts.slice(0, timeHorizon).map((ec) => (
+                  <div key={ec.year} className="flex flex-col items-center">
+                    <Label className="text-[10px] text-muted-foreground mb-0.5">
+                      Y{ec.year}
+                    </Label>
+                    <div className="relative w-full">
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        value={ec.exitFeePct || ""}
+                        onChange={(e) => updateExitCost(ec.year, e.target.value)}
+                        placeholder="0"
+                        className="h-7 text-xs text-center pr-3 px-1"
+                      />
+                      <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[9px] text-muted-foreground">
+                        %
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </CollapsibleContent>
         </Collapsible>
       </CardContent>

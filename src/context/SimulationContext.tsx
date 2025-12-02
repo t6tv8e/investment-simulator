@@ -22,6 +22,7 @@ export interface Fund {
   quantity: number;
   yearlyReturnPct: number;
   costs: FundCosts;
+  exitCosts: ExitCostSchedule[];
 }
 
 export interface ExitCostSchedule {
@@ -38,7 +39,6 @@ export interface Scenario {
   id: string;
   name: string;
   funds: Fund[];
-  exitCosts: ExitCostSchedule[];
   taxSettings: TaxSettings;
 }
 
@@ -75,12 +75,8 @@ type SimulationAction =
       };
     }
   | {
-      type: "SET_EXIT_COSTS";
-      payload: { scenarioId: string; exitCosts: ExitCostSchedule[] };
-    }
-  | {
-      type: "UPDATE_EXIT_COST";
-      payload: { scenarioId: string; year: number; exitFeePct: number };
+      type: "UPDATE_FUND_EXIT_COST";
+      payload: { scenarioId: string; fundId: string; year: number; exitFeePct: number };
     }
   | {
       type: "UPDATE_TAX_RATE";
@@ -94,7 +90,7 @@ type SimulationAction =
 // Helper functions
 const generateId = () => crypto.randomUUID();
 
-const createDefaultFund = (): Fund => ({
+const createDefaultFund = (timeHorizon: number): Fund => ({
   id: generateId(),
   name: "New Fund",
   unitPrice: 100,
@@ -107,19 +103,16 @@ const createDefaultFund = (): Fund => ({
     transactionCostPct: 0,
     performanceFeePct: 0,
   },
-});
-
-const createDefaultScenario = (
-  name: string,
-  timeHorizon: number
-): Scenario => ({
-  id: generateId(),
-  name,
-  funds: [],
   exitCosts: Array.from({ length: timeHorizon }, (_, i) => ({
     year: i + 1,
     exitFeePct: 0,
   })),
+});
+
+const createDefaultScenario = (name: string): Scenario => ({
+  id: generateId(),
+  name,
+  funds: [],
   taxSettings: {
     taxRatePct: 30,
     realizationYears: [],
@@ -128,7 +121,7 @@ const createDefaultScenario = (
 
 // Initial State
 const createInitialState = (): SimulationState => {
-  const scenario = createDefaultScenario("Realistic Scenario", 10);
+  const scenario = createDefaultScenario("Realistic Scenario");
   return {
     initialCapital: 120000,
     timeHorizon: 10,
@@ -153,10 +146,13 @@ function simulationReducer(
         timeHorizon: newHorizon,
         scenarios: state.scenarios.map((scenario) => ({
           ...scenario,
-          exitCosts: Array.from({ length: newHorizon }, (_, i) => {
-            const existing = scenario.exitCosts.find((ec) => ec.year === i + 1);
-            return existing || { year: i + 1, exitFeePct: 0 };
-          }),
+          funds: scenario.funds.map((fund) => ({
+            ...fund,
+            exitCosts: Array.from({ length: newHorizon }, (_, i) => {
+              const existing = fund.exitCosts.find((ec) => ec.year === i + 1);
+              return existing || { year: i + 1, exitFeePct: 0 };
+            }),
+          })),
         })),
       };
     }
@@ -164,8 +160,7 @@ function simulationReducer(
     case "ADD_SCENARIO": {
       if (state.scenarios.length >= 3) return state;
       const newScenario = createDefaultScenario(
-        `Scenario ${state.scenarios.length + 1}`,
-        state.timeHorizon
+        `Scenario ${state.scenarios.length + 1}`
       );
       return {
         ...state,
@@ -204,7 +199,7 @@ function simulationReducer(
         scenarios: state.scenarios.map((s) => {
           if (s.id !== action.payload.scenarioId) return s;
           if (s.funds.length >= 5) return s;
-          return { ...s, funds: [...s.funds, createDefaultFund()] };
+          return { ...s, funds: [...s.funds, createDefaultFund(state.timeHorizon)] };
         }),
       };
     }
@@ -256,27 +251,24 @@ function simulationReducer(
         ),
       };
 
-    case "SET_EXIT_COSTS":
-      return {
-        ...state,
-        scenarios: state.scenarios.map((s) =>
-          s.id === action.payload.scenarioId
-            ? { ...s, exitCosts: action.payload.exitCosts }
-            : s
-        ),
-      };
-
-    case "UPDATE_EXIT_COST":
+    case "UPDATE_FUND_EXIT_COST":
       return {
         ...state,
         scenarios: state.scenarios.map((s) =>
           s.id === action.payload.scenarioId
             ? {
                 ...s,
-                exitCosts: s.exitCosts.map((ec) =>
-                  ec.year === action.payload.year
-                    ? { ...ec, exitFeePct: action.payload.exitFeePct }
-                    : ec
+                funds: s.funds.map((f) =>
+                  f.id === action.payload.fundId
+                    ? {
+                        ...f,
+                        exitCosts: f.exitCosts.map((ec) =>
+                          ec.year === action.payload.year
+                            ? { ...ec, exitFeePct: action.payload.exitFeePct }
+                            : ec
+                        ),
+                      }
+                    : f
                 ),
               }
             : s

@@ -42,6 +42,9 @@ export interface FundYearResult {
   endValueAfterCosts: number;
   netReturn: number;
   netReturnPct: number;
+  exitCost: number;
+  exitCostPct: number;
+  valueAfterExit: number;
 }
 
 export interface ScenarioYearResult {
@@ -96,7 +99,7 @@ function calculateFundYear(
   year: number,
   startValue: number
 ): FundYearResult {
-  const { costs, yearlyReturnPct } = fund;
+  const { costs, yearlyReturnPct, exitCosts } = fund;
 
   // Entry fee only applies in year 1
   const entryFee = year === 1 ? startValue * (costs.entryFeePct / 100) : 0;
@@ -120,6 +123,11 @@ function calculateFundYear(
 
   const netReturn = endValueAfterCosts - startValue;
   const netReturnPct = startValue > 0 ? (netReturn / startValue) * 100 : 0;
+
+  // Exit cost calculation for this fund
+  const exitCostPct = getExitCostPct(exitCosts, year);
+  const exitCost = endValueAfterCosts * (exitCostPct / 100);
+  const valueAfterExit = endValueAfterCosts - exitCost;
 
   return {
     year,
@@ -148,6 +156,9 @@ function calculateFundYear(
     endValueAfterCosts,
     netReturn,
     netReturnPct,
+    exitCost,
+    exitCostPct,
+    valueAfterExit,
   };
 }
 
@@ -162,7 +173,7 @@ export function calculateScenarioProjection(
   scenario: Scenario,
   timeHorizon: number
 ): ScenarioProjection {
-  const { funds, exitCosts, id, name } = scenario;
+  const { funds, id, name } = scenario;
 
   // Initial investment is sum of all fund allocations
   const initialInvestment = funds.reduce(
@@ -220,10 +231,13 @@ export function calculateScenarioProjection(
       0
     );
 
-    // Exit cost calculation
-    const exitCostPct = getExitCostPct(exitCosts, year);
-    const exitCost = totalEndValueAfterCosts * (exitCostPct / 100);
-    const valueAfterExit = totalEndValueAfterCosts - exitCost;
+    // Exit cost calculation - aggregate from all funds
+    const exitCost = fundResults.reduce((sum, r) => sum + r.exitCost, 0);
+    const valueAfterExit = fundResults.reduce((sum, r) => sum + r.valueAfterExit, 0);
+    // Calculate weighted average exit cost percentage
+    const exitCostPct = totalEndValueAfterCosts > 0 
+      ? (exitCost / totalEndValueAfterCosts) * 100 
+      : 0;
 
     years.push({
       year,

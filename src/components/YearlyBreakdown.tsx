@@ -286,8 +286,18 @@ export function YearlyBreakdown({ projection, taxSettings }: YearlyBreakdownProp
                           <TableCell className="text-right tabular-nums text-sm">
                             {formatCurrency(fund.endValueAfterCosts)}
                           </TableCell>
-                          <TableCell className="text-right text-muted-foreground">
-                            -
+                          <TableCell className="text-right tabular-nums text-sm text-muted-foreground">
+                            {fund.exitCostPct > 0 ? (
+                              <>
+                                {formatPercentage(fund.exitCostPct)}
+                                <br />
+                                <span className="text-xs">
+                                  ({formatCurrency(fund.exitCost)})
+                                </span>
+                              </>
+                            ) : (
+                              "-"
+                            )}
                           </TableCell>
                           {taxSettings && (
                             <>
@@ -299,8 +309,12 @@ export function YearlyBreakdown({ projection, taxSettings }: YearlyBreakdownProp
                               </TableCell>
                             </>
                           )}
-                          <TableCell className="text-right text-muted-foreground">
-                            -
+                          <TableCell className="text-right tabular-nums text-sm">
+                            {fund.exitCostPct > 0 ? (
+                              formatCurrency(fund.valueAfterExit)
+                            ) : (
+                              "-"
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
