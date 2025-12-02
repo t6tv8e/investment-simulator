@@ -76,7 +76,12 @@ type SimulationAction =
     }
   | {
       type: "UPDATE_FUND_EXIT_COST";
-      payload: { scenarioId: string; fundId: string; year: number; exitFeePct: number };
+      payload: {
+        scenarioId: string;
+        fundId: string;
+        year: number;
+        exitFeePct: number;
+      };
     }
   | {
       type: "UPDATE_TAX_RATE";
@@ -123,7 +128,7 @@ const createDefaultScenario = (name: string): Scenario => ({
 const createInitialState = (): SimulationState => {
   const scenario = createDefaultScenario("Realistic Scenario");
   return {
-    initialCapital: 120000,
+    initialCapital: 100000,
     timeHorizon: 10,
     scenarios: [scenario],
     activeScenarioId: scenario.id,
@@ -199,7 +204,10 @@ function simulationReducer(
         scenarios: state.scenarios.map((s) => {
           if (s.id !== action.payload.scenarioId) return s;
           if (s.funds.length >= 5) return s;
-          return { ...s, funds: [...s.funds, createDefaultFund(state.timeHorizon)] };
+          return {
+            ...s,
+            funds: [...s.funds, createDefaultFund(state.timeHorizon)],
+          };
         }),
       };
     }
