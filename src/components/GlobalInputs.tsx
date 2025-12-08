@@ -1,4 +1,7 @@
-import { useSimulation, useSimulationDispatch } from "@/context/SimulationContext";
+import {
+  useSimulation,
+  useSimulationDispatch,
+} from "@/context/SimulationContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -20,7 +23,10 @@ export function GlobalInputs() {
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <div className="space-y-2">
-        <Label htmlFor="capital" className="text-sm font-medium text-muted-foreground">
+        <Label
+          htmlFor="capital"
+          className="text-sm font-medium text-muted-foreground"
+        >
           Initial Capital
         </Label>
         <div className="relative">
@@ -31,7 +37,7 @@ export function GlobalInputs() {
             id="capital"
             type="text"
             inputMode="numeric"
-            value={initialCapital.toLocaleString("nl-BE")}
+            value={initialCapital}
             onChange={handleCapitalChange}
             className="pl-8 text-lg font-semibold"
           />
@@ -66,5 +72,3 @@ export function GlobalInputs() {
     </div>
   );
 }
-
-
